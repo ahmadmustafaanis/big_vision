@@ -28,9 +28,6 @@ import sys
 import time
 from typing import Mapping
 
-from absl import flags
-from absl import logging
-from big_vision.pp import registry as pp_registry
 import einops
 import flax
 import flax.jax_utils as flax_utils
@@ -38,8 +35,10 @@ import jax
 import jax.numpy as jnp
 import ml_collections as mlc
 import numpy as np
-
 import tensorflow.io.gfile as gfile  # pylint: disable=consider-using-from-import
+from absl import flags, logging
+
+from big_vision.pp import registry as pp_registry
 
 Registry = pp_registry.Registry
 

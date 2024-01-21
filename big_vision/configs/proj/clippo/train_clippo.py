@@ -124,7 +124,7 @@ def get_config(arg=None):
         'dont_load': ['^head/.*', '^MAPHead_0/.*', 'cls']}
 
   config.model.temperature_init = 10.0
-  config.model.out_dim = 768
+  config.model.out_dim = 768 # Changed 
 
   # Define the optimizer
   config.optax_name = 'big_vision.scale_by_adafactor'

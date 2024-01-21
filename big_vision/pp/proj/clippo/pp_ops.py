@@ -13,11 +13,12 @@
 # limitations under the License.
 
 """Preprocessing functions for CLIP with Pixels Only (CLIPPO)."""
-from absl import logging
-from  big_vision.pp import utils
-from big_vision.pp.registry import Registry
 import numpy as np
 import tensorflow as tf
+from absl import logging
+
+from big_vision.pp import utils
+from big_vision.pp.registry import Registry
 
 
 @Registry.register("preprocess_ops.render_unifont")
@@ -52,8 +53,8 @@ def get_pp_render_text(image_size: int, font_size: int = 16, max_chars=768,
   colpattern = {64: range(32),
                 32: sorted(tuple(range(0, 32, 4)) + tuple(range(2, 32, 4)))}
 
-  unifont_path = "big_vision/pp/proj/clippo/unifont-9.0.06.hex"
-  unifont_upper_path = "big_vision/pp/proj/clippo/unifont_upper-9.0.06.hex"
+  unifont_path = "/home/ahmad/Desktop/projects/big_vision/big_vision/pp/proj/clippo/unifont-9.0.06.hex"
+  unifont_upper_path = "/home/ahmad/Desktop/projects/big_vision/big_vision/pp/proj/clippo/unifont_upper-9.0.06.hex"
 
   with tf.io.gfile.GFile(unifont_path) as f:
     for line in f:

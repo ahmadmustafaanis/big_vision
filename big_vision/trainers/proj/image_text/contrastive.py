@@ -24,23 +24,21 @@ import importlib
 import multiprocessing.pool
 import os
 
-from absl import app
-from absl import flags
-from absl import logging
+import flax
+import jax
+import jax.numpy as jnp
+import numpy as np
+import optax
+import tensorflow as tf
+from absl import app, flags, logging
+from clu import parameter_overview
+from ml_collections import config_flags
+from tensorflow.io import gfile
+
 import big_vision.evaluators.common as eval_common
 import big_vision.input_pipeline as input_pipeline
 import big_vision.optax as bv_optax
 import big_vision.utils as u
-from clu import parameter_overview
-import flax
-import jax
-import jax.numpy as jnp
-from ml_collections import config_flags
-import numpy as np
-import optax
-import tensorflow as tf
-
-from tensorflow.io import gfile
 
 # pylint: disable=logging-fstring-interpolation
 
@@ -140,7 +138,7 @@ def main(argv):
   # We want all parameters to be created in host RAM, not on any device, they'll
   # be sent there later as needed, otherwise we already encountered two
   # situations where we allocate them twice.
-  @functools.partial(jax.jit, backend="cpu")
+  @functools.partial(jax.jit, backend="cpu")  # TODO: change this to load from checkpoints
   def init(rng):
     bs = batch_size // jax.device_count()
     image_size = tuple(train_ds.element_spec["image"].shape[1:])
