@@ -1,7 +1,7 @@
 import pickle
 import sys
 
-sys.path.append("/home/ahmad/Desktop/projects/big_vision/")
+sys.path.append("/content/big_vision")
 
 import flax.linen as nn
 import jax
@@ -18,15 +18,16 @@ from big_vision.models.proj.clippo.one_tower import Model as OneTowerModel
 from big_vision.models.proj.clippo.one_tower import load as one_tower_load
 from big_vision.models.vit import load as vit_load
 
-
+num_classes = 101
+num_epochs = 10
+batch_size = 128
 # Define cross entropy loss
 def cross_entropy(logits, labels):
-    one_hot = common_utils.onehot(labels, num_classes=10)
+    one_hot = common_utils.onehot(labels, num_classes=num_classes)
     xent = optax.softmax_cross_entropy(logits, one_hot)
     return jnp.mean(xent)
 
 
-num_classes = 10
 
 
 class DenseModel(nn.Module):
@@ -37,13 +38,13 @@ class DenseModel(nn.Module):
         return nn.Dense(self.num_classes)(x)
 
 
-ds = tfds.load("mnist")
+ds = tfds.load("food101_updated_text_no_img_preprocessing")
 
 # Initialize the first model (frozen)
 model1 = OneTowerModel()
 init_params = vit_load(
     None,
-    "/home/ahmad/Desktop/projects/big_vision/big_vision/weights/clippo_b16_yfcc100m_i21k_init_75c4.npz",
+    "/content/clippo_b16_yfcc100m_i21k_init_75c4.npz",
     None,
 )
 
@@ -81,12 +82,12 @@ def compute_metrics(logits, labels):
 
 
 # Training loop
-for epoch in tqdm(range(3)):
+for epoch in tqdm(range(num_epochs)):
     metrics_sum = {"accuracy": 0, "recall": 0, "precision": 0, "f1": 0}
     num_batches = 0
 
-    for batch in ds["train"].batch(64):
-        images = np.repeat(batch["image"].numpy(), 3, axis=-1)
+    for batch in ds["train"].batch(batch_size):
+        images = batch["image"].numpy() #, 3, axis=-1)
         labels = batch["label"].numpy()
 
         def train_step(state, images, labels):
@@ -123,3 +124,11 @@ with open("model1_weights.pkl", "wb") as f:
 
 with open("model2_weights.pkl", "wb") as f:
     pickle.dump(train_state.params, f)
+
+# save metrics dictionary to a csv
+import csv
+with open('metrics.csv', 'w') as csv_file:  
+    writer = csv.writer(csv_file)
+    for key, value in metrics_sum.items():
+       writer.writerow([key, value])
+
