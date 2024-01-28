@@ -12,11 +12,25 @@ import tensorflow_datasets as tfds
 from flax.training import common_utils, train_state
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from tqdm import tqdm
+import importlib
+
+RES = 224
 
 from big_vision.configs.proj.clippo import train_clippo
 from big_vision.models.proj.clippo.one_tower import Model as OneTowerModel
 from big_vision.models.proj.clippo.one_tower import load as one_tower_load
 from big_vision.models.vit import load as vit_load
+from big_vision.pp import builder as pp_builder
+
+for pp_modules in ["ops_general", "ops_image", "ops_text", "proj.clippo.pp_ops"]:
+    importlib.import_module(f"big_vision.pp.{pp_modules}")
+
+pp_image_str = f"value_range(-1,1)"
+pp_image_fn = pp_builder.get_preprocess_fn(pp_image_str)
+
+def preprocess_images(images):
+  return [np.array(pp_image_fn({'image': img})['image']) for img in images]
+
 
 num_classes = 101
 num_epochs = 10
@@ -38,7 +52,7 @@ class DenseModel(nn.Module):
         return nn.Dense(self.num_classes)(x)
 
 
-ds = tfds.load("food101_updated_text_no_img_preprocessing")
+ds = tfds.load("food101_no_img_preprocessing_clippo")
 
 # Initialize the first model (frozen)
 model1 = OneTowerModel()
@@ -89,6 +103,7 @@ for epoch in tqdm(range(num_epochs)):
     for batch in ds["train"].batch(batch_size):
         images = batch["image"].numpy() #, 3, axis=-1)
         labels = batch["label"].numpy()
+        images = np.array(preprocess_images(images))
 
         def train_step(state, images, labels):
             def loss_fn(params):
@@ -131,4 +146,3 @@ with open('metrics.csv', 'w') as csv_file:
     writer = csv.writer(csv_file)
     for key, value in metrics_sum.items():
        writer.writerow([key, value])
-
